@@ -30,7 +30,8 @@ class DTVRecorder :
     public DVBMainStreamListener,
     public ATSCMainStreamListener,
     public TSPacketListener,
-    public TSPacketListenerAV
+    public TSPacketListenerAV,
+    public DVBEITStreamListener
 {
   public:
     DTVRecorder(TVRec *rec);
@@ -89,6 +90,10 @@ class DTVRecorder :
     // Common audio/visual processing
     bool ProcessAVTSPacket(const TSPacket &tspacket);
 
+    // EIT timing information
+    bool IsRunning(void) { return _is_running; }
+    bool IsFollowing(void) { return _is_following; }
+
   protected:
     void FinishRecording(void);
     void ResetForNewFile(void);
@@ -119,6 +124,9 @@ class DTVRecorder :
     virtual QString GetSIStandard(void) const { return "mpeg"; }
     virtual void SetCAMPMT(const ProgramMapTable*) {}
     virtual void UpdateCAMTimeOffset(void) {}
+
+    void HandleEIT(const DVBEventInformationTable*);
+    void HandleEIT(const PremiereContentInformationTable*) {}
 
     // file handle for stream
     int _stream_fd;
@@ -171,6 +179,9 @@ class DTVRecorder :
     unsigned char _pid_status[0x1fff + 1];
     unsigned char _continuity_counter[0x1fff + 1];
     vector<TSPacket> _scratch;
+
+    // EIT timing
+    bool _is_running, _is_following;
 
     // Statistics
     bool          _use_pts; // vs use dts
