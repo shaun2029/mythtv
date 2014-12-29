@@ -238,6 +238,7 @@ class ChannelScanSM : public MPEGStreamListener,
     QMap<uint, uint>            currentEncryptionStatus;
     QMap<uint, bool>            currentEncryptionStatusChecked;
     QMap<uint64_t, QString>     defAuthorities;
+    bool                        m_dvbt2Tried;
 
     /// Found Channel Info
     ChannelList       channelList;

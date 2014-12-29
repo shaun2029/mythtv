@@ -97,6 +97,11 @@ void ScanWizard::SetPage(const QString &pageTitle)
         start_chan = configPane->GetStartChan();
         parse_type = DTVTunerType::kTunerTypeDVBT;
     }
+    else if (scantype == ScanTypeSetting::NITAddScan_DVBT2)
+    {
+        start_chan = configPane->GetStartChan();
+        parse_type = DTVTunerType::kTunerTypeDVBT2;
+    }
     else if (scantype == ScanTypeSetting::NITAddScan_DVBS)
     {
         start_chan = configPane->GetStartChan();
@@ -123,6 +128,7 @@ void ScanWizard::SetPage(const QString &pageTitle)
              (scantype == ScanTypeSetting::CurrentTransportScan) ||
              (scantype == ScanTypeSetting::FullScan_DVBC)     ||
              (scantype == ScanTypeSetting::FullScan_DVBT)     ||
+             (scantype == ScanTypeSetting::FullScan_DVBT2)    ||
              (scantype == ScanTypeSetting::FullScan_Analog))
     {
         ;

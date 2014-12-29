@@ -303,6 +303,7 @@ void ChannelScanSM::HandleAllGood(void)
         UpdateScanPercentCompleted();
         waitingForTables = false;
         nextIt = current.nextTransport();
+        m_dvbt2Tried = true;
     }
 }
 
@@ -935,6 +936,18 @@ bool ChannelScanSM::UpdateChannelInfo(bool wait_until_complete)
             LOG(VB_CHANSCAN, LOG_INFO, LOC +
                 QString("Adding %1, offset %2 to channelList.")
                     .arg((*current).tuning.toString()).arg(current.offset()));
+
+            TransportScanItem &item = *current;
+            item.tuning.frequency = item.freq_offset(current.offset());
+
+            if (scanDTVTunerType == DTVTunerType::kTunerTypeDVBT2)
+            {
+                if (m_dvbt2Tried)
+                    item.tuning.mod_sys = DTVModulationSystem::kModulationSystem_DVBT2;
+                else
+                    item.tuning.mod_sys = DTVModulationSystem::kModulationSystem_DVBT;
+            }
+
             channelList << ChannelListItem(current, currentInfo);
             currentInfo = NULL;
         }
@@ -987,6 +1000,7 @@ bool ChannelScanSM::UpdateChannelInfo(bool wait_until_complete)
             UpdateScanPercentCompleted();
             waitingForTables = false;
             nextIt = current.nextTransport();
+            m_dvbt2Tried = true;
         }
         else
         {
@@ -1591,6 +1605,21 @@ void ChannelScanSM::HandleActiveScan(void)
     if (!HasTimedOut())
         return;
 
+    if (0 == nextIt.offset() && nextIt == scanTransports.begin())
+    {
+        channelList.clear();
+        channelsFound = 0;
+        m_dvbt2Tried = true;
+    }
+
+    if ((scanDTVTunerType == DTVTunerType::kTunerTypeDVBT2) && ! m_dvbt2Tried)
+    {
+        // If we failed to get a lock with DVB-T try DVB-T2.
+        m_dvbt2Tried = true;
+        ScanTransport(current);
+        return;
+    }
+
     if (0 == nextIt.offset() && nextIt != scanTransports.begin())
     {
         // Add channel to scanned list and potentially check decryption
@@ -1603,13 +1632,8 @@ void ChannelScanSM::HandleActiveScan(void)
         locker.relock();
     }
 
-    if (0 == nextIt.offset() && nextIt == scanTransports.begin())
-    {
-        channelList.clear();
-        channelsFound = 0;
-    }
-
     current = nextIt; // Increment current
+    m_dvbt2Tried = false;
 
     if (current != scanTransports.end())
     {
@@ -1671,6 +1695,15 @@ bool ChannelScanSM::Tune(const transport_scan_items_it_t transport)
     const uint64_t freq = item.freq_offset(transport.offset());
     DTVMultiplex tuning = item.tuning;
     tuning.frequency = freq;
+
+    if (scanDTVTunerType == DTVTunerType::kTunerTypeDVBT2)
+    {
+        if (m_dvbt2Tried)
+            tuning.mod_sys = DTVModulationSystem::kModulationSystem_DVBT2;
+        else
+            tuning.mod_sys = DTVModulationSystem::kModulationSystem_DVBT;
+    }
+
     return GetDTVChannel()->Tune(tuning, inputname);
 }
 
