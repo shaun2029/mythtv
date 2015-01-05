@@ -1,0 +1,9 @@
+This is a fork of MythTV created by David Matthews.
+
+The fixes/0.27 branch is my "production" branch.  It includes a number of
+my patches.  Other branches are either inherited from the original or
+are branches of master designed for pull requests.
+
+dvbt2support.  This branch contains code to support DVB-T2 on tuners that
+do not auto-switch between DVB-T and DVB-T2.  It has been submitted as a
+pull request and trac ticket (January 2015).
